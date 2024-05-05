@@ -990,6 +990,12 @@ DEFINE_SYSCALL(llseek, int, fd, unsigned long, offset_high, unsigned long, offse
 
 static bool find_mountpoint(const char *path, struct mount_point *out_mp, const char **out_subpath)
 {
+	if (IS_NT_PATH(path))
+	{
+		bool ret = find_mountpoint("/", out_mp, out_subpath);
+		*out_subpath = path;
+		return ret;
+	}
 	for (int i = vfs_shared->mp_first; i; i = vfs_shared->mounts[i].next)
 	{
 		const struct mount_point *mp = &vfs_shared->mounts[i];
@@ -1023,6 +1029,11 @@ static int resolve_path(const char *dirpath, const char *pathname, char *realpat
 	/* ENOENT when pathname is empty (according to Linux) */
 	if (*pathname == 0)
 		return -L_ENOENT;
+	if (IS_NT_PATH(pathname))
+	{
+		strncpy(realpath, pathname, PATH_MAX - 1);
+		return strlen(realpath);
+	}
 	/* CAUTION: dirpath can be aliased with realpath */
 	if (*pathname == '/')
 	{

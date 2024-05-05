@@ -47,6 +47,16 @@ struct winfs_file
 /* Convert an utf-8 file name to NT file name, return converted name length in characters, no NULL terminator is appended */
 static int filename_to_nt_pathname(struct mount_point *mp, const char *filename, WCHAR *buf, int buf_size)
 {
+	if (IS_NT_PATH(filename))
+	{
+		int out_size = utf8_to_utf16(filename, strlen("\\??\\C:"), buf, buf_size);
+		if (out_size < 0)
+			return 0;
+		int fl = utf8_to_utf16_filename(filename + out_size, strlen(filename) - out_size, buf + out_size, buf_size - out_size);
+		if (fl < 0)
+			return 0;
+		return out_size + fl;
+	}
 	if (buf_size < mp->win_path_len)
 		return 0;
 	memcpy(buf, mp->win_path, mp->win_path_len * sizeof(WCHAR));

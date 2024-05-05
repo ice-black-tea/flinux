@@ -41,6 +41,15 @@
 #define GETDENTS_ERR_BUFFER_OVERFLOW	-100
 typedef intptr_t getdents_callback(void *buffer, uint64_t inode, const void *name, int namelen, char type, size_t size, int flags);
 
+#define IS_NT_PATH(path) ( \
+	(path)[0] == '\\' && \
+	(path)[1] == '?' && \
+	(path)[2] == '?' && \
+	(path)[3] == '\\' && \
+	(path)[4] != '\0' && \
+	(path)[5] == ':' \
+)
+
 struct file_ops
 {
 	/* Polling functions */
